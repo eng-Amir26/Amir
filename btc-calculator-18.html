@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>BTC Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════
+   ROOT TOKENS
+══════════════════════════════════════ */
+:root {
+  --gold:    #D4A017;
+  --gold-lt: #F0C040;
+  --gold-dk: #9A7510;
+  --gold-bg: #1A1200;
+  --bg:      #0C0900;
+  --card:    #141008;
+  --card2:   #1C1610;
+  --border:  #2E2200;
+  --border-g:#3A2E00;
+  --white:   #F5F5F5;
+  --num-bg:  #EEEEEE;
+  --num-txt: #111111;
+  --op-bg:   #2A2000;
+  --op-txt:  #C8960A;
+  --ac-bg:   #2A0808;
+  --ac2-bg:  #3A0C0C;
+  --red:     #CC3333;
+  --green-card: #0D1A08;
+  --green-brd:  #2A4010;
+  --f:       'Cairo','Tajawal','Segoe UI',Arial,sans-serif;
+  --r:       14px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  background: radial-gradient(ellipse at top, #1A1000 0%, #050300 100%);
+  min-height: 100vh;
+  display: flex; align-items: flex-start; justify-content: center;
+  font-family: var(--f);
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════ */
+.app {
+  width: 100%; max-width: 430px; min-height: 100vh;
+  background: linear-gradient(180deg, #181008 0%, #0E0A04 100%);
+  border-left:  2px solid var(--gold);
+  border-right: 2px solid var(--gold);
+  border-bottom: 2px solid var(--gold);
+  border-radius: 0 0 24px 24px;
+  display: flex; flex-direction: column;
+  position: relative;
+  box-shadow: 0 0 60px rgba(212,160,23,0.3), inset 0 0 80px rgba(0,0,0,0.5);
+}
+.app::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:4px;
+  background: linear-gradient(90deg, #6A4A00, var(--gold-lt), #FFD700, var(--gold-lt), #6A4A00);
+  border-radius: 0;
+}
+
+/* ── Header ── */
+.header { padding: 22px 20px 10px; text-align: center; }
+.app-title {
+  font-size: 26px; font-weight: 900; color: var(--gold-lt);
+  text-shadow: 0 0 20px rgba(240,192,64,0.6);
+  letter-spacing: 1px;
+}
+.app-sub {
+  font-size: 12px; color: rgba(200,160,40,0.55);
+  margin-top: 2px; letter-spacing: 1px;
+}
+
+/* ══════════════════════════════════════
+   TAB BAR
+══════════════════════════════════════ */
+.tabs {
+  display: flex; align-items: center;
+  border-bottom: 1px solid var(--border-g);
+  padding: 0;
+  gap: 0;
+}
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  flex: 1;
+  padding: 12px 4px 11px;
+  font-size: 15px; font-weight: 700;
+  color: rgba(200,150,10,0.45);
+  cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  transition: all .2s;
+  white-space: nowrap;
+  background: none; border-top: none; border-left: none; border-right: none;
+  font-family: var(--f);
+  position: relative; bottom: -1px;
+  text-align: center;
+}
+.tab.active {
+  color: var(--gold-lt);
+  border-bottom-color: var(--gold-lt);
+}
+
+/* ══════════════════════════════════════
+   PAGES
+══════════════════════════════════════ */
+.page { display: none; flex-direction: column; flex: 1; }
+.page.active { display: flex; }
+
+/* ══════════════════════════════════════
+   CALCULATOR PAGE
+══════════════════════════════════════ */
+.display-wrap { padding: 14px 14px 8px; }
+.display {
+  background: #080600; border: 1px solid var(--border-g);
+  border-radius: var(--r); padding: 14px 18px;
+  min-height: 78px;
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end;
+  position: relative; overflow: hidden;
+}
+.display::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background: linear-gradient(90deg,transparent,rgba(212,160,23,0.5),transparent);
+}
+.display-expr {
+  font-size: 12px; color: rgba(212,160,23,0.4);
+  min-height: 16px; text-align: right; word-break: break-all;
+  font-family: 'Tajawal', monospace;
+}
+.display-num {
+  font-size: 42px; font-weight: 900; color: var(--gold-lt);
+  text-align: right; word-break: break-all; line-height: 1.1;
+  text-shadow: 0 0 20px rgba(240,192,64,0.4);
+  font-family: 'Tajawal', sans-serif;
+}
+.display-num.pop { animation: pop .13s ease-out; }
+@keyframes pop { 0%{transform:scale(1.06);} 100%{transform:scale(1);} }
+.display-num.flash { animation: fls .35s ease-out; }
+@keyframes fls {
+  0%  { color:#FFE566; text-shadow:0 0 40px rgba(255,229,102,1); }
+  100%{ color:var(--gold-lt); text-shadow:0 0 20px rgba(240,192,64,0.4); }
+}
+
+/* keypad */
+.keypad {
+  padding: 6px 14px 14px;
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 10px; flex:1;
+}
+.btn {
+  aspect-ratio: 1; border-radius: var(--r); border: none; cursor: pointer;
+  font-family: var(--f); font-weight: 700; font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+  transition: transform .1s, filter .1s;
+  -webkit-user-select: none; user-select: none;
+}
+.btn:active { transform: scale(0.88); filter: brightness(1.2); }
+
+/* White number buttons */
+.btn-num {
+  background: linear-gradient(160deg, #F8F8F8, #E2E2E2);
+  color: var(--num-txt);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.9);
+  font-size: 22px;
+}
+/* Zero wide */
+.btn-zero {
+  aspect-ratio: auto; grid-column: span 1;
+  font-size: 22px;
+}
+/* Operator dark-gold */
+.btn-op {
+  background: linear-gradient(160deg, #2E2400, #1C1600);
+  color: var(--gold); font-size: 22px;
+  border: 1px solid rgba(212,160,23,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+/* Equals bright gold */
+.btn-eq {
+  background: linear-gradient(160deg, var(--gold-lt), var(--gold), var(--gold-dk));
+  color: #1A0E00; font-size: 26px; font-weight: 900;
+  box-shadow: 0 4px 18px rgba(212,160,23,0.5), inset 0 1px 0 rgba(255,230,100,0.4);
+}
+.btn-eq:active { box-shadow: 0 0 25px rgba(240,192,64,0.8); }
+/* AC red */
+.btn-ac {
+  background: linear-gradient(160deg, #3A0C0C, #280808);
+  color: #FF6666; font-size: 15px;
+  border: 1px solid rgba(180,40,40,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+/* Backspace also red-ish */
+.btn-back {
+  background: linear-gradient(160deg, #3A0C0C, #280808);
+  color: #FF6666; font-size: 18px;
+  border: 1px solid rgba(180,40,40,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+/* % and +/- dark-gold */
+.btn-fn {
+  background: linear-gradient(160deg, #2A2000, #1A1400);
+  color: var(--gold); font-size: 18px;
+  border: 1px solid rgba(212,160,23,0.15);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+/* dot */
+.btn-dot {
+  background: linear-gradient(160deg, #F8F8F8, #E2E2E2);
+  color: #444; font-size: 26px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.9);
+}
+
+/* ripple */
+.ripple {
+  position:absolute; border-radius:50%; pointer-events:none;
+  background:rgba(255,255,255,0.22);
+  animation:rip .5s ease-out forwards;
+}
+@keyframes rip {
+  from{width:0;height:0;opacity:.8;transform:translate(-50%,-50%);}
+  to  {width:120px;height:120px;opacity:0;transform:translate(-50%,-50%);}
+}
+
+/* ══════════════════════════════════════
+   GD PAGES SHARED
+══════════════════════════════════════ */
+.gd-page { padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+
+/* title card */
+.gd-title-card {
+  background: var(--card2); border: 1px solid var(--border-g);
+  border-radius: var(--r); padding: 14px 18px; text-align: center;
+}
+.gd-title-card h2 { font-size: 20px; font-weight: 900; color: var(--gold-lt); }
+.gd-title-card p  { font-size: 12px; color: rgba(200,150,10,0.5); margin-top: 3px; }
+
+/* input card */
+.input-card {
+  background: var(--card2); border: 1px solid var(--border-g);
+  border-radius: var(--r); padding: 16px 18px;
+}
+.field { margin-bottom: 14px; }
+.field:last-of-type { margin-bottom: 0; }
+.field-label {
+  font-size: 13px; color: rgba(200,150,10,0.6); display: block;
+  margin-bottom: 6px; text-align: right;
+}
+.field-input {
+  width: 100%; background: transparent; border: none; border-bottom: 1.5px solid var(--border-g);
+  color: var(--gold-lt); font-family: var(--f); font-size: 22px; font-weight: 700;
+  text-align: right; outline: none; padding: 4px 0 6px;
+  transition: border-color .2s;
+}
+.field-input:focus { border-bottom-color: var(--gold-lt); }
+.field-input::placeholder { color: rgba(200,150,10,0.2); font-size: 16px; }
+
+.card-btns { display: flex; gap: 10px; margin-top: 16px; }
+.btn-gold {
+  flex: 3; padding: 14px; border-radius: 12px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, var(--gold-lt), var(--gold), var(--gold-dk));
+  color: #1A0E00; font-family: var(--f); font-size: 16px; font-weight: 900;
+  box-shadow: 0 4px 18px rgba(212,160,23,0.4);
+  transition: all .18s;
+}
+.btn-gold:active { transform: scale(0.96); box-shadow: 0 0 22px rgba(240,192,64,0.7); }
+.btn-red {
+  flex: 1; padding: 14px; border-radius: 12px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, #3A0C0C, #280808);
+  color: #FF7777; font-family: var(--f); font-size: 15px; font-weight: 700;
+  border: 1px solid rgba(180,40,40,0.3);
+  transition: all .18s;
+}
+.btn-red:active { transform: scale(0.96); background: #4A1010; }
+
+/* result card */
+.result-card {
+  background: var(--card2); border: 1px solid var(--border-g);
+  border-radius: var(--r); padding: 14px 18px; display: none;
+}
+.result-card.show { display: block; }
+.result-label { font-size: 13px; color: rgba(200,150,10,0.5); text-align: right; margin-bottom: 6px; }
+.result-value {
+  font-size: 32px; font-weight: 900; color: var(--gold-lt);
+  text-align: left; direction: ltr;
+  text-shadow: 0 0 18px rgba(240,192,64,0.5);
+}
+.result-unit { font-size: 18px; color: rgba(200,150,10,0.6); margin-right: 6px; }
+
+/* tahyeef card */
+.tahyeef-card {
+  background: var(--green-card); border: 1px solid var(--green-brd);
+  border-radius: var(--r); padding: 14px 18px; display: none;
+}
+.tahyeef-card.show { display: block; }
+.tahyeef-header { font-size: 12px; color: rgba(120,160,80,0.7); margin-bottom: 12px; text-align: right; }
+.tahyeef-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 0; border-bottom: 1px solid rgba(60,100,20,0.25);
+}
+.tahyeef-row:last-child { border-bottom: none; }
+.tahyeef-left  { display: flex; align-items: center; gap: 10px; }
+.tahyeef-badge {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 900;
+}
+.badge-red    { background: rgba(180,60,20,0.3); color: #E07050; border: 1px solid rgba(180,60,20,0.5); }
+.badge-silver { background: rgba(160,180,190,0.15); color: #B0C0CC; border: 1px solid rgba(160,180,190,0.3); }
+.badge-brass  { background: rgba(160,130,20,0.2); color: #C0A030; border: 1px solid rgba(160,130,20,0.4); }
+.tahyeef-name { font-size: 14px; font-weight: 700; }
+.tahyeef-name.red    { color: #E07050; }
+.tahyeef-name.silver { color: #B8C8D0; }
+.tahyeef-name.brass  { color: #C0A030; }
+.tahyeef-val-wrap { text-align: left; direction: ltr; }
+.tahyeef-val { font-size: 16px; font-weight: 700; color: var(--gold-lt); }
+.tahyeef-unit { font-size: 12px; color: rgba(200,150,10,0.5); margin-right: 4px; }
+
+/* use result button */
+.btn-use {
+  display: none; width: 100%; padding: 12px; border-radius: 12px;
+  border: 1px solid rgba(85,200,120,0.35); background: rgba(85,200,120,0.08);
+  color: #55CC88; cursor: pointer; font-family: var(--f);
+  font-size: 13px; font-weight: 700; transition: all .18s;
+}
+.btn-use.show { display: block; }
+.btn-use:active { background: rgba(85,200,120,0.2); }
+
+/* ══════════════════════════════════════
+   GT PAGE
+══════════════════════════════════════ */
+.gt-page { padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; flex:1; }
+
+.gt-input-card {
+  background: var(--card2); border: 1px solid var(--border-g);
+  border-radius: var(--r); padding: 16px 18px;
+}
+.gt-fields-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;
+}
+.gt-field-label { font-size: 12px; color: rgba(200,150,10,0.55); text-align: right; margin-bottom: 4px; display: block; }
+.gt-field-input {
+  width: 100%; background: transparent; border: none;
+  border-bottom: 1.5px solid var(--border-g);
+  color: var(--gold-lt); font-family: var(--f); font-size: 20px; font-weight: 700;
+  text-align: right; outline: none; padding: 4px 0 6px;
+  transition: border-color .2s;
+}
+.gt-field-input:focus { border-bottom-color: var(--gold-lt); }
+.gt-field-input::placeholder { color: rgba(200,150,10,0.2); }
+
+/* memory list */
+.gt-mem-card {
+  background: var(--card2); border: 1px solid var(--border-g);
+  border-radius: var(--r); overflow: hidden; display: none;
+}
+.gt-mem-card.show { display: block; }
+.gt-mem-scroll {
+  max-height: 198px; /* ~3 items */
+  overflow-y: auto;
+}
+.gt-mem-item {
+  display: flex; align-items: center;
+  padding: 11px 14px; border-bottom: 1px solid var(--border);
+  gap: 10px; animation: slideIn .2s ease-out;
+}
+.gt-mem-item:last-child { border-bottom: none; }
+@keyframes slideIn { from{opacity:0;transform:translateY(-6px);} to{opacity:1;transform:translateY(0);} }
+.gt-z-badge {
+  background: rgba(212,160,23,0.12); border: 1px solid rgba(212,160,23,0.25);
+  border-radius: 8px; padding: 4px 8px;
+  font-size: 12px; font-weight: 900; color: var(--gold);
+  flex-shrink: 0;
+}
+.gt-mem-info { flex: 1; text-align: right; }
+.gt-mem-formula { font-size: 11px; color: rgba(200,150,10,0.4); direction: ltr; text-align: left; }
+.gt-mem-val { font-size: 16px; font-weight: 700; color: var(--gold-lt); text-align: right; }
+.gt-del-btn {
+  background: rgba(180,40,40,0.15); border: 1px solid rgba(180,40,40,0.3);
+  border-radius: 6px; color: #FF6666; cursor: pointer;
+  width: 28px; height: 28px; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background .15s;
+}
+.gt-del-btn:active { background: rgba(180,40,40,0.35); }
+
+/* totals */
+.gt-total-card {
+  background: var(--card2); border: 1px solid var(--border-g);
+  border-radius: var(--r); padding: 14px 18px; display: none;
+}
+.gt-total-card.show { display: block; }
+.gt-total-label { font-size: 13px; color: rgba(200,150,10,0.5); text-align: right; margin-bottom: 4px; }
+
+/* المحصلة النهائية button */
+.btn-final {
+  width: 100%; padding: 13px; border-radius: 12px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, #1C1600, #2E2400);
+  border: 1.5px solid var(--gold-dk);
+  color: var(--gold-lt); font-family: var(--f);
+  font-size: 15px; font-weight: 700;
+  transition: all .18s;
+  box-shadow: 0 2px 10px rgba(212,160,23,0.1);
+}
+.btn-final:active { background: #2A1E00; box-shadow: 0 0 18px rgba(212,160,23,0.4); transform: scale(0.98); }
+.gt-total-val {
+  font-size: 30px; font-weight: 900; color: var(--gold-lt);
+  text-align: left; direction: ltr;
+  text-shadow: 0 0 18px rgba(240,192,64,0.5);
+}
+.gt-total-sub { font-size: 12px; color: rgba(200,150,10,0.4); margin-top: 2px; text-align: right; }
+
+.safe-bottom { height: env(safe-area-inset-bottom,14px); flex-shrink:0; }
+
+/* scrollbar */
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-thumb { background: rgba(212,160,23,0.3); border-radius:2px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="app-title">BTC Calculator</div>
+    <div class="app-sub">Gold Calculation System</div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('calc')">حاسبة</button>
+    <button class="tab"        onclick="switchTab('gd21')">GD21</button>
+    <button class="tab"        onclick="switchTab('gd5')">GD 5B</button>
+    <button class="tab"        onclick="switchTab('gd18')">GD18</button>
+    <button class="tab"        onclick="switchTab('gt')">GT</button>
+  </div>
+
+  <!-- ══ PAGE: CALCULATOR ══ -->
+  <div class="page active" id="page-calc">
+    <div class="display-wrap">
+      <div class="display">
+        <div class="display-expr" id="expr"></div>
+        <div class="display-num"  id="display">0</div>
+      </div>
+    </div>
+    <div class="keypad">
+      <!-- Row 1 -->
+      <button class="btn btn-ac"   onclick="calcAction('ac')">AC</button>
+      <button class="btn btn-back" onclick="calcAction('back')">⌫</button>
+      <button class="btn btn-fn"   onclick="calcAction('pm')">+/−</button>
+      <button class="btn btn-op"   onclick="calcAction('÷')">÷</button>
+      <!-- Row 2 -->
+      <button class="btn btn-num"  onclick="calcAction('7')">7</button>
+      <button class="btn btn-num"  onclick="calcAction('8')">8</button>
+      <button class="btn btn-num"  onclick="calcAction('9')">9</button>
+      <button class="btn btn-op"   onclick="calcAction('×')">×</button>
+      <!-- Row 3 -->
+      <button class="btn btn-num"  onclick="calcAction('4')">4</button>
+      <button class="btn btn-num"  onclick="calcAction('5')">5</button>
+      <button class="btn btn-num"  onclick="calcAction('6')">6</button>
+      <button class="btn btn-op"   onclick="calcAction('-')">−</button>
+      <!-- Row 4 -->
+      <button class="btn btn-num"  onclick="calcAction('1')">1</button>
+      <button class="btn btn-num"  onclick="calcAction('2')">2</button>
+      <button class="btn btn-num"  onclick="calcAction('3')">3</button>
+      <button class="btn btn-op"   onclick="calcAction('+')">+</button>
+      <!-- Row 5 -->
+      <button class="btn btn-eq"   onclick="calcAction('=')">=</button>
+      <button class="btn btn-num btn-zero" onclick="calcAction('0')">0</button>
+      <button class="btn btn-dot"  onclick="calcAction('.')">.</button>
+      <button class="btn btn-fn"   onclick="calcAction('%')">%</button>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: GD21 ══ -->
+  <div class="page" id="page-gd21">
+    <div class="gd-page">
+      <div class="gd-title-card">
+        <h2>GD21</h2>
+        <p>عيار 21 − تحييف</p>
+      </div>
+      <div class="input-card" id="card-gd21">
+        <div class="field">
+          <label class="field-label">الوزن (جرام)</label>
+          <input class="field-input" id="w21" type="number" inputmode="decimal" placeholder="0.000" step="any">
+        </div>
+        <div class="field">
+          <label class="field-label">العيار</label>
+          <input class="field-input" id="s21" type="number" inputmode="decimal" placeholder="0.000" step="any">
+        </div>
+        <div class="card-btns">
+          <button class="btn-gold" onclick="calcGD('gd21')">حساب</button>
+          <button class="btn-red"  onclick="clearGD('gd21')">مسح</button>
+        </div>
+      </div>
+      <div class="result-card" id="res-gd21">
+        <div class="result-label">التحييف الكلي</div>
+        <div class="result-value"><span class="result-unit">جم</span><span id="rv-gd21"></span></div>
+      </div>
+      <div class="tahyeef-card" id="th-gd21">
+        <div class="tahyeef-header">تفاصيل التحييف</div>
+        <div class="tahyeef-row">
+          <div class="tahyeef-val-wrap"><span class="tahyeef-unit">جم</span><span class="tahyeef-val" id="th21-r"></span></div>
+          <div class="tahyeef-left">
+            <span class="tahyeef-name red">نحاس أحمر</span>
+            <div class="tahyeef-badge badge-red">60%</div>
+          </div>
+        </div>
+        <div class="tahyeef-row">
+          <div class="tahyeef-val-wrap"><span class="tahyeef-unit">جم</span><span class="tahyeef-val" id="th21-s"></span></div>
+          <div class="tahyeef-left">
+            <span class="tahyeef-name silver">فضة</span>
+            <div class="tahyeef-badge badge-silver">30%</div>
+          </div>
+        </div>
+        <div class="tahyeef-row">
+          <div class="tahyeef-val-wrap"><span class="tahyeef-unit">جم</span><span class="tahyeef-val" id="th21-b"></span></div>
+          <div class="tahyeef-left">
+            <span class="tahyeef-name brass">نحاس أصفر</span>
+            <div class="tahyeef-badge badge-brass">10%</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-use" id="use-gd21" onclick="useGDResult('gd21')">✓ استخدم النتيجة في الحاسبة</button>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: GD5 ══ -->
+  <div class="page" id="page-gd5">
+    <div class="gd-page">
+      <div class="gd-title-card">
+        <h2>GD 5 BOUND</h2>
+        <p>عيار 5 − تحييف</p>
+      </div>
+      <div class="input-card">
+        <div class="field">
+          <label class="field-label">الوزن (جرام)</label>
+          <input class="field-input" id="w5" type="number" inputmode="decimal" placeholder="0.000" step="any">
+        </div>
+        <div class="field">
+          <label class="field-label">العيار</label>
+          <input class="field-input" id="s5" type="number" inputmode="decimal" placeholder="0.000" step="any">
+        </div>
+        <div class="card-btns">
+          <button class="btn-gold" onclick="calcGD('gd5')">حساب</button>
+          <button class="btn-red"  onclick="clearGD('gd5')">مسح</button>
+        </div>
+      </div>
+      <div class="result-card" id="res-gd5">
+        <div class="result-label">التحييف الكلي</div>
+        <div class="result-value"><span class="result-unit">جم</span><span id="rv-gd5"></span></div>
+      </div>
+      <div class="tahyeef-card" id="th-gd5">
+        <div class="tahyeef-header">تفاصيل التحييف</div>
+        <div class="tahyeef-row">
+          <div class="tahyeef-val-wrap"><span class="tahyeef-unit">جم</span><span class="tahyeef-val" id="th5-r"></span></div>
+          <div class="tahyeef-left"><span class="tahyeef-name red">نحاس أحمر</span><div class="tahyeef-badge badge-red">60%</div></div>
+        </div>
+        <div class="tahyeef-row">
+          <div class="tahyeef-val-wrap"><span class="tahyeef-unit">جم</span><span class="tahyeef-val" id="th5-s"></span></div>
+          <div class="tahyeef-left"><span class="tahyeef-name silver">فضة</span><div class="tahyeef-badge badge-silver">30%</div></div>
+        </div>
+        <div class="tahyeef-row">
+          <div class="tahyeef-val-wrap"><span class="tahyeef-unit">جم</span><span class="tahyeef-val" id="th5-b"></span></div>
+          <div class="tahyeef-left"><span class="tahyeef-name brass">نحاس أصفر</span><div class="tahyeef-badge badge-brass">10%</div></div>
+        </div>
+      </div>
+      <button class="btn-use" id="use-gd5" onclick="useGDResult('gd5')">✓ استخدم النتيجة في الحاسبة</button>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: GD18 ══ -->
+  <div class="page" id="page-gd18">
+    <div class="gd-page">
+      <div class="gd-title-card">
+        <h2>GD18</h2>
+        <p>عيار 18 − تحييف</p>
+      </div>
+      <div class="input-card">
+        <div class="field">
+          <label class="field-label">الوزن (جرام)</label>
+          <input class="field-input" id="w18" type="number" inputmode="decimal" placeholder="0.000" step="any">
+        </div>
+        <div class="field">
+          <label class="field-label">العيار</label>
+          <input class="field-input" id="s18" type="number" inputmode="decimal" placeholder="0.000" step="any">
+        </div>
+        <div class="card-btns">
+          <button class="btn-gold" onclick="calcGD('gd18')">حساب</button>
+          <button class="btn-red"  onclick="clearGD('gd18')">مسح</button>
+        </div>
+      </div>
+      <div class="result-card" id="res-gd18">
+        <div class="result-label">التحييف الكلي</div>
+        <div class="result-value"><span class="result-unit">جم</span><span id="rv-gd18"></span></div>
+      </div>
+      <div class="tahyeef-card" id="th-gd18">
+        <div class="tahyeef-header">تفاصيل التحييف</div>
+        <div class="tahyeef-row">
+          <div class="tahyeef-val-wrap"><span class="tahyeef-unit">جم</span><span class="tahyeef-val" id="th18-r"></span></div>
+          <div class="tahyeef-left"><span class="tahyeef-name red">نحاس أحمر</span><div class="tahyeef-badge badge-red">60%</div></div>
+        </div>
+        <div class="tahyeef-row">
+          <div class="tahyeef-val-wrap"><span class="tahyeef-unit">جم</span><span class="tahyeef-val" id="th18-s"></span></div>
+          <div class="tahyeef-left"><span class="tahyeef-name silver">فضة</span><div class="tahyeef-badge badge-silver">30%</div></div>
+        </div>
+        <div class="tahyeef-row">
+          <div class="tahyeef-val-wrap"><span class="tahyeef-unit">جم</span><span class="tahyeef-val" id="th18-b"></span></div>
+          <div class="tahyeef-left"><span class="tahyeef-name brass">نحاس أصفر</span><div class="tahyeef-badge badge-brass">10%</div></div>
+        </div>
+      </div>
+      <button class="btn-use" id="use-gd18" onclick="useGDResult('gd18')">✓ استخدم النتيجة في الحاسبة</button>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: GT ══ -->
+  <div class="page" id="page-gt">
+    <div class="gt-page">
+      <div class="gd-title-card">
+        <h2>Grand Total</h2>
+        <p>الوزن × العيار ÷ 1000</p>
+      </div>
+
+      <div class="gt-input-card">
+        <div class="gt-fields-row">
+          <div>
+            <span class="gt-field-label">الوزن</span>
+            <input class="gt-field-input" id="gt-x" type="number" inputmode="decimal" placeholder="0.000" step="any">
+          </div>
+          <div>
+            <span class="gt-field-label">العيار</span>
+            <input class="gt-field-input" id="gt-o" type="number" inputmode="decimal" placeholder="0.000" step="any">
+          </div>
+        </div>
+        <div class="card-btns" style="margin-bottom:10px;">
+          <button class="btn-gold" onclick="gtAdd()">+ إضافة</button>
+          <button class="btn-red"  onclick="gtReset()">مسح الكل</button>
+        </div>
+        <button class="btn-final" id="gt-final-btn" onclick="gtShowTotals()">المحصلة النهائية</button>
+      </div>
+
+      <!-- memory list (max 3 visible, rest scrollable) -->
+      <div class="gt-mem-card" id="gt-mem-card">
+        <div class="gt-mem-scroll" id="gt-mem-list"></div>
+      </div>
+
+      <!-- Z total — hidden until button pressed -->
+      <div class="gt-total-card" id="gt-z-card">
+        <div class="gt-total-label">مجموع النتائج (Z)</div>
+        <div class="gt-total-val"><span style="font-size:18px;color:rgba(200,150,10,0.5);margin-left:6px;">جم</span><span id="gt-z-val"></span></div>
+      </div>
+
+      <!-- weight total — hidden until button pressed -->
+      <div class="gt-total-card" id="gt-w-card">
+        <div class="gt-total-label">مجموع الوزن القائم</div>
+        <div class="gt-total-val"><span style="font-size:18px;color:rgba(200,150,10,0.5);margin-left:6px;">جم</span><span id="gt-w-val"></span></div>
+        <div class="gt-total-sub" id="gt-count"></div>
+      </div>
+
+      <button class="btn-use" id="gt-use-btn" onclick="gtUseResult()">✓ استخدم المحصلة في الحاسبة</button>
+    </div>
+  </div>
+
+  <div class="safe-bottom"></div>
+</div>
+
+<script>
+/* ════ TAB SWITCHING ════ */
+const tabs  = document.querySelectorAll('.tab');
+const pages = document.querySelectorAll('.page');
+const tabIds = ['calc','gd21','gd5','gd18','gt'];
+const focusMap = { gd21:'w21', gd5:'w5', gd18:'w18', gt:'gt-x' };
+
+function switchTab(id){
+  tabs.forEach(t=>t.classList.remove('active'));
+  pages.forEach(p=>p.classList.remove('active'));
+  const idx = tabIds.indexOf(id);
+  tabs[idx].classList.add('active');
+  document.getElementById('page-'+id).classList.add('active');
+  // auto-focus the weight/first input
+  if(focusMap[id]){
+    setTimeout(()=>{
+      const el=document.getElementById(focusMap[id]);
+      if(el){ el.focus(); el.select(); }
+    },120);
+  }
+}
+
+/* ════ RIPPLE ════ */
+document.querySelectorAll('.btn,.btn-gold,.btn-red,.btn-use').forEach(el=>{
+  el.addEventListener('click',function(e){
+    const r=document.createElement('div'); r.className='ripple';
+    const rc=this.getBoundingClientRect();
+    r.style.left=(e.clientX-rc.left)+'px'; r.style.top=(e.clientY-rc.top)+'px';
+    this.appendChild(r); setTimeout(()=>r.remove(),500);
+  });
+});
+
+/* ════ CALCULATOR ════ */
+let cur='0',prev='',op=null,justEq=false,fresh=true;
+const dEl=document.getElementById('display');
+const eEl=document.getElementById('expr');
+
+function fmt(s){
+  if(!s||s==='-')return s||'0';
+  const neg=s[0]==='-'; const t=neg?s.slice(1):s;
+  const[ip,dp]=t.split('.');
+  const fi=ip.replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  return(neg?'-':'')+fi+(dp!==undefined?'.'+dp:'');
+}
+function upd(pop){
+  dEl.textContent=fmt(cur);
+  if(pop){dEl.classList.remove('pop');void dEl.offsetWidth;dEl.classList.add('pop');}
+}
+function flash(){dEl.classList.remove('flash');void dEl.offsetWidth;dEl.classList.add('flash');}
+function pn(s){return parseFloat(String(s).replace(/,/g,''));}
+
+function calcAction(v){
+  if(v==='ac'){cur='0';prev='';op=null;justEq=false;fresh=true;eEl.textContent='';upd(false);return;}
+  if(v==='back'){
+    if(justEq){cur='0';justEq=false;upd(false);return;}
+    cur=(cur.length<=1||(cur.length===2&&cur[0]==='-'))?'0':cur.slice(0,-1);
+    upd(true);return;
+  }
+  if(v==='pm'){
+    if(cur!=='0'){cur=cur[0]==='-'?cur.slice(1):'-'+cur;upd(true);}return;
+  }
+  if(v==='%'){const n=parseFloat(cur);if(!isNaN(n)){cur=String(parseFloat((n/100).toPrecision(10)));upd(true);}return;}
+  const isOp=['+','-','×','÷'].includes(v);
+  if(isOp){
+    if(op&&!fresh){cur=String(cmp(pn(prev),parseFloat(cur),op));flash();}
+    prev=cur;op=v;fresh=true;justEq=false;
+    eEl.textContent=fmt(prev)+' '+v;upd(false);return;
+  }
+  if(v==='='){
+    if(!op)return;
+    eEl.textContent=fmt(prev)+' '+op+' '+fmt(cur)+' =';
+    cur=String(cmp(pn(prev),parseFloat(cur),op));
+    op=null;prev='';justEq=true;fresh=true;flash();upd(false);return;
+  }
+  if(justEq){cur='0';justEq=false;eEl.textContent='';}
+  if(fresh){cur='0';fresh=false;}
+  if(v==='.'){if(!cur.includes('.'))cur+='.';upd(true);return;}
+  cur=cur==='0'?v:cur+v;
+  if(cur.replace('-','').replace('.','').length>13)return;
+  upd(true);
+}
+function cmp(a,b,o){
+  let r;
+  if(o==='+')r=a+b; else if(o==='-')r=a-b;
+  else if(o==='×')r=a*b; else if(o==='÷')r=b?a/b:0;
+  return isNaN(r)?0:parseFloat(r.toPrecision(12));
+}
+
+/* keyboard */
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT')return;
+  const activePage=document.querySelector('.page.active');
+  if(!activePage||activePage.id!=='page-calc')return;
+  const k=e.key;
+  if(k>='0'&&k<='9'){calcAction(k);return;}
+  if(k==='.'||k===','){calcAction('.');return;}
+  if(k==='+'){calcAction('+');return;}
+  if(k==='-'){calcAction('-');return;}
+  if(k==='*'){calcAction('×');return;}
+  if(k==='/'){e.preventDefault();calcAction('÷');return;}
+  if(k==='%'){calcAction('%');return;}
+  if(k==='Enter'||k==='='){calcAction('=');return;}
+  if(k==='Backspace'){calcAction('back');return;}
+  if(k==='Escape'||k==='Delete'){calcAction('ac');return;}
+});
+
+/* ════ GD LOGIC ════ */
+const GD_CFG={
+  gd21:{w:'w21',s:'s21',div:872.50,rv:'rv-gd21',rc:'res-gd21',tc:'th-gd21',r:'th21-r',sv:'th21-s',b:'th21-b',use:'use-gd21'},
+  gd5: {w:'w5', s:'s5', div:875,   rv:'rv-gd5', rc:'res-gd5', tc:'th-gd5', r:'th5-r', sv:'th5-s', b:'th5-b', use:'use-gd5'},
+  gd18:{w:'w18',s:'s18',div:750,   rv:'rv-gd18',rc:'res-gd18',tc:'th-gd18',r:'th18-r',sv:'th18-s',b:'th18-b',use:'use-gd18'},
+};
+const gdResults={};
+
+function fmtR(n){
+  if(isNaN(n))return'0';
+  const r=parseFloat(n.toPrecision(10));
+  let s=r.toFixed(6).replace(/\.?0+$/,'');
+  const[ip,dp]=s.split('.');
+  const fi=ip.replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  return dp?fi+'.'+dp:fi;
+}
+
+function calcGD(id){
+  const c=GD_CFG[id];
+  const w=parseFloat(document.getElementById(c.w).value);
+  const s=parseFloat(document.getElementById(c.s).value);
+  if(isNaN(w)||isNaN(s)){
+    document.getElementById(c.rv).textContent='⚠ أدخل القيم';
+    document.getElementById(c.rc).classList.add('show');
+    document.getElementById(c.tc).classList.remove('show');
+    document.getElementById(c.use).classList.remove('show');
+    return;
+  }
+  const res=(w*s/c.div)-w;
+  gdResults[id]=res;
+  document.getElementById(c.rv).textContent=fmtR(res);
+  document.getElementById(c.rc).classList.add('show');
+  document.getElementById(c.r).textContent=fmtR(res*.6);
+  document.getElementById(c.sv).textContent=fmtR(res*.3);
+  document.getElementById(c.b).textContent=fmtR(res*.1);
+  document.getElementById(c.tc).classList.add('show');
+  document.getElementById(c.use).classList.add('show');
+  // scroll to result
+  setTimeout(()=>{
+    document.getElementById(c.rc).scrollIntoView({behavior:'smooth', block:'start'});
+  },80);
+}
+function clearGD(id){
+  const c=GD_CFG[id];
+  document.getElementById(c.w).value='';
+  document.getElementById(c.s).value='';
+  document.getElementById(c.rc).classList.remove('show');
+  document.getElementById(c.tc).classList.remove('show');
+  document.getElementById(c.use).classList.remove('show');
+  gdResults[id]=null;
+}
+function useGDResult(id){
+  const res=gdResults[id]; if(res==null)return;
+  cur=String(parseFloat(res.toPrecision(12)));
+  justEq=true;fresh=true;op=null;prev='';
+  eEl.textContent='← '+id.toUpperCase();
+  flash();upd(false);switchTab('calc');
+}
+
+/* Enter navigation for GD pages */
+[['w21','s21','gd21'],['w5','s5','gd5'],['w18','s18','gd18']].forEach(([wid,sid,gid])=>{
+  document.getElementById(wid).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById(sid).focus();}});
+  document.getElementById(sid).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();calcGD(gid);}});
+});
+
+/* ════ GT LOGIC ════ */
+let gtMem=[], gtFinal=null;
+
+function gtRenderMem(){
+  const list=document.getElementById('gt-mem-list');
+  const card=document.getElementById('gt-mem-card');
+  if(!gtMem.length){card.classList.remove('show');list.innerHTML='';return;}
+  card.classList.add('show');
+  list.innerHTML=gtMem.map((it,i)=>`
+    <div class="gt-mem-item">
+      <div class="gt-z-badge">Z${i+1}</div>
+      <div class="gt-mem-info">
+        <div class="gt-mem-formula">${it.x} × ${it.o} ÷ 1000</div>
+        <div class="gt-mem-val">${fmtR(it.z)} جم</div>
+      </div>
+      <button class="gt-del-btn" onclick="gtDel(${i})">×</button>
+    </div>`).join('');
+}
+
+function gtCalcTotals(){
+  if(!gtMem.length) return false;
+  const zSum=gtMem.reduce((a,it)=>a+it.z,0);
+  const wSum=gtMem.reduce((a,it)=>a+it.x,0);
+  gtFinal=zSum;
+  document.getElementById('gt-z-val').textContent=fmtR(zSum);
+  document.getElementById('gt-w-val').textContent=fmtR(wSum);
+  document.getElementById('gt-count').textContent=gtMem.length+' قطعة';
+  return true;
+}
+
+function gtShowTotals(){
+  if(!gtCalcTotals()) return;
+  document.getElementById('gt-z-card').classList.add('show');
+  document.getElementById('gt-w-card').classList.add('show');
+  document.getElementById('gt-use-btn').classList.add('show');
+  // scroll to totals
+  setTimeout(()=>{
+    document.getElementById('gt-z-card').scrollIntoView({behavior:'smooth', block:'start'});
+  },80);
+}
+
+function gtHideTotals(){
+  document.getElementById('gt-z-card').classList.remove('show');
+  document.getElementById('gt-w-card').classList.remove('show');
+  document.getElementById('gt-use-btn').classList.remove('show');
+}
+
+function gtAdd(){
+  const xv=document.getElementById('gt-x').value.trim();
+  const ov=document.getElementById('gt-o').value.trim();
+  // both empty → show totals immediately
+  if(xv===''&&ov===''){
+    if(gtMem.length>0) gtShowTotals();
+    return;
+  }
+  const x=parseFloat(xv), o=parseFloat(ov);
+  if(isNaN(x)||isNaN(o)){
+    if(isNaN(x))document.getElementById('gt-x').style.borderBottomColor='#FF4444';
+    if(isNaN(o))document.getElementById('gt-o').style.borderBottomColor='#FF4444';
+    setTimeout(()=>{
+      document.getElementById('gt-x').style.borderBottomColor='';
+      document.getElementById('gt-o').style.borderBottomColor='';
+    },700);
+    return;
+  }
+  gtMem.push({x,o,z:x*o/1000});
+  document.getElementById('gt-x').value='';
+  document.getElementById('gt-o').value='';
+  gtHideTotals();
+  gtRenderMem();
+  setTimeout(()=>document.getElementById('gt-x').focus(),80);
+}
+
+function gtDel(i){
+  gtMem.splice(i,1);
+  gtHideTotals();
+  gtRenderMem();
+}
+
+function gtReset(){
+  gtMem=[];gtFinal=null;
+  document.getElementById('gt-x').value='';
+  document.getElementById('gt-o').value='';
+  gtRenderMem();
+  gtHideTotals();
+}
+
+function gtUseResult(){
+  if(gtFinal==null)return;
+  cur=String(parseFloat(gtFinal.toPrecision(12)));
+  justEq=true;fresh=true;op=null;prev='';
+  eEl.textContent='← GT';
+  flash();upd(false);switchTab('calc');
+}
+
+/* GT Enter navigation */
+document.getElementById('gt-x').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();document.getElementById('gt-o').focus();}
+});
+document.getElementById('gt-o').addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return; e.preventDefault();
+  const xv=document.getElementById('gt-x').value.trim();
+  const ov=document.getElementById('gt-o').value.trim();
+  if(xv===''&&ov===''){
+    if(gtMem.length>0) gtShowTotals();
+  } else {
+    gtAdd(); // after gtAdd, focus goes back to gt-x automatically
+  }
+});
+
+/* ── Init ── */
+upd(false);
+</script>
+</body>
+</html>
